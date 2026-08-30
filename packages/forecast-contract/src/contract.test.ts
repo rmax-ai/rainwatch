@@ -89,7 +89,7 @@ export const VALID_SNAPSHOT: RainForecastSnapshot = {
   ],
 };
 
-const clone = <T,>(v: T): T => JSON.parse(JSON.stringify(v)) as T;
+const clone = <T>(v: T): T => JSON.parse(JSON.stringify(v)) as T;
 
 describe("RainForecastSnapshot v1 contract (SPEC §40)", () => {
   it("parses a valid snapshot", () => {

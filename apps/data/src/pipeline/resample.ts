@@ -7,16 +7,20 @@ const ONE_DAY_MS = 24 * 3_600_000;
 
 /**
  * SPEC §19, §27 — pure. Normalize the published timeline to one resolution:
- * 5-minute steps for [now, now+4h], 30-minute steps for (now+4h, now+24h].
+ * 5-minute steps for [now, now+4h), 30-minute steps for [now+4h, now+24h].
  *
  * Assignment: source point → NEAREST slot; colliding points are averaged;
  * interior empty slots are linearly interpolated between neighbors;
  * edge slots clamp to the nearest available value.
+ *
+ * Generic over SourceForecastPoint: extra fields (source, confidence, ...)
+ * of each slot come from its nearest assigned source point (the "anchor").
+ * Empty input → all-zero grid with source "radar-nowcast", confidence "low".
  */
-export function resampleTimeline(
-  points: SourceForecastPoint[],
+export function resampleTimeline<T extends SourceForecastPoint>(
+  points: T[],
   nowEpochMs: number,
-): SourceForecastPoint[] {
+): T[] {
   // Build the target grid: 5-min slots [now, now+4h) = 48 slots;
   // 30-min slots [now+4h, now+24h] = 41 slots. Total 89.
   const slotMs: number[] = [];
@@ -25,33 +29,65 @@ export function resampleTimeline(
     slotMs.push(t);
   }
 
-  // Assign each in-range source point to its nearest slot.
-  const sums = new Map<number, { total: number; count: number }>();
+  // Assign each in-range source point to its nearest slot; track the anchor
+  // (nearest assigned point) per slot for extra-field propagation.
+  const sums = new Map<number, { total: number; count: number; anchor: T; anchorDist: number }>();
   for (const p of points) {
     const ms = Date.parse(p.timestamp);
     if (!Number.isFinite(ms) || ms < nowEpochMs || ms > nowEpochMs + ONE_DAY_MS) continue;
-    // Nearest slot via binary search over the sorted grid.
     const idx = nearestIndex(slotMs, ms);
     const slot = slotMs[idx];
     if (slot === undefined) continue;
-    const acc = sums.get(slot) ?? { total: 0, count: 0 };
+    const dist = Math.abs(slot - ms);
+    const acc = sums.get(slot) ?? {
+      total: 0,
+      count: 0,
+      anchor: p,
+      anchorDist: Number.POSITIVE_INFINITY,
+    };
     acc.total += p.precipitationMmPerHour;
     acc.count += 1;
+    if (dist < acc.anchorDist) {
+      acc.anchor = p;
+      acc.anchorDist = dist;
+    }
     sums.set(slot, acc);
   }
 
-  // Assemble per-slot values (null = empty slot).
+  // Assemble per-slot values + anchors (null = empty slot).
   const raw = slotMs.map((ms) => {
     const acc = sums.get(ms);
-    return acc ? acc.total / acc.count : null;
+    return acc ? { value: acc.total / acc.count, anchor: acc.anchor } : null;
   });
 
-  const values = interpolate(raw);
+  const filled = interpolate(raw);
 
-  return slotMs.map((ms, i) => ({
+  return slotMs.map((ms, i) => {
+    const cell = filled[i];
+    if (cell) {
+      return {
+        ...cell.anchor,
+        timestamp: new Date(ms).toISOString(),
+        precipitationMmPerHour: cell.value,
+      };
+    }
+    // No source points at all — degrade to an explicit dry grid.
+    return {
+      ...(emptyAnchor(ms) as unknown as T),
+    };
+  });
+}
+
+function emptyAnchor(ms: number): SourceForecastPoint & {
+  source: string;
+  confidence: string;
+} {
+  return {
     timestamp: new Date(ms).toISOString(),
-    precipitationMmPerHour: values[i] ?? 0,
-  }));
+    precipitationMmPerHour: 0,
+    source: "radar-nowcast",
+    confidence: "low",
+  };
 }
 
 function nearestIndex(sorted: number[], target: number): number {
@@ -71,18 +107,21 @@ function nearestIndex(sorted: number[], target: number): number {
   return lo;
 }
 
+interface Cell<T> {
+  value: number;
+  anchor: T;
+}
+
 /** Fill nulls: interior → linear interpolation; edges → clamp. */
-function interpolate(values: Array<number | null>): Array<number | null> {
+function interpolate<T>(values: Array<Cell<T> | null>): Array<Cell<T> | null> {
   const out = [...values];
   const n = out.length;
-  // First pass: fill runs of nulls between known values.
   let i = 0;
   while (i < n) {
     if (out[i] !== null) {
       i += 1;
       continue;
     }
-    // find left neighbor
     let leftIdx = i - 1;
     while (leftIdx >= 0 && out[leftIdx] === null) leftIdx -= 1;
     let j = i;
@@ -92,12 +131,14 @@ function interpolate(values: Array<number | null>): Array<number | null> {
     if (left !== null && right !== null) {
       const span = j - leftIdx;
       for (let k = i; k < j; k += 1) {
-        out[k] = left + ((right - left) * (k - leftIdx)) / span;
+        const f = (k - leftIdx) / span;
+        const anchor = f < 0.5 ? left.anchor : right.anchor;
+        out[k] = { value: left.value + (right.value - left.value) * f, anchor };
       }
     } else if (left !== null) {
-      for (let k = i; k < j; k += 1) out[k] = left;
+      for (let k = i; k < j; k += 1) out[k] = { value: left.value, anchor: left.anchor };
     } else if (right !== null) {
-      for (let k = i; k < j; k += 1) out[k] = right;
+      for (let k = i; k < j; k += 1) out[k] = { value: right.value, anchor: right.anchor };
     }
     i = j;
   }

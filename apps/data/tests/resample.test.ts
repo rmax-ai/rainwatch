@@ -1,3 +1,4 @@
+import type { SourceForecastPoint } from "@rainwatch/domain";
 import { describe, expect, it } from "vitest";
 
 import { resampleTimeline } from "../src/pipeline/resample.js";
@@ -7,7 +8,7 @@ const P = (iso: string, mm: number) => ({ timestamp: iso, precipitationMmPerHour
 
 describe("resampleTimeline (SPEC §19)", () => {
   it("emits 89 slots: 48 × 5-min [0–4h) + 41 × 30-min [4–24h]", () => {
-    const out = resampleTimeline([], NOW);
+    const out = resampleTimeline([] as SourceForecastPoint[], NOW);
     expect(out).toHaveLength(89);
     const t0 = Date.parse(out[0]!.timestamp);
     const t1 = Date.parse(out[1]!.timestamp);

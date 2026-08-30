@@ -16,9 +16,11 @@
   },
   "dependencies": {
     "@rainwatch/domain": "workspace:*",
-    "@rainwatch/forecast-contract": "workspace:*"
+    "@rainwatch/forecast-contract": "workspace:*",
+    "preact": "^10.29.8"
   },
   "devDependencies": {
+    "@preact/preset-vite": "^2.10.6",
     "typescript": "catalog:",
     "vite": "catalog:",
     "vite-plugin-pwa": "catalog:"

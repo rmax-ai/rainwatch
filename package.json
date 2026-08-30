@@ -1,0 +1,32 @@
+{
+  "name": "rainwatch",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "pnpm web:dev",
+    "test": "vitest run",
+    "lint": "biome check . && node scripts/check-boundaries.mjs",
+    "typecheck": "pnpm -r --if-present run typecheck",
+    "data:update": "pnpm --filter @rainwatch/data update",
+    "data:doctor": "pnpm --filter @rainwatch/data doctor",
+    "data:inspect": "pnpm --filter @rainwatch/data inspect",
+    "data:replay": "pnpm --filter @rainwatch/data replay",
+    "web:dev": "pnpm --filter @rainwatch/web dev",
+    "web:build": "pnpm --filter @rainwatch/web build"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "catalog:",
+    "@rainwatch/config": "workspace:*",
+    "@rainwatch/data": "workspace:*",
+    "@rainwatch/domain": "workspace:*",
+    "@rainwatch/forecast-contract": "workspace:*",
+    "@rainwatch/test-fixtures": "workspace:*",
+    "@rainwatch/web": "workspace:*",
+    "typescript": "catalog:",
+    "tsx": "catalog:",
+    "vitest": "catalog:"
+  }
+}

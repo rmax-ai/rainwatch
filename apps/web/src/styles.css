@@ -1,0 +1,219 @@
+/* Rainwatch NL — dark, mobile-first, one screen (SPEC §29-33). */
+
+:root {
+  color-scheme: dark;
+  --bg: #0b1220;
+  --panel: #111a2c;
+  --text: #e6edf7;
+  --muted: #8b98ab;
+  --accent: #38bdf8;
+  --rain: #60a5fa;
+  --danger: #f87171;
+  --border: #1e2a3e;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+#app {
+  max-width: 30rem;
+  margin: 0 auto;
+  padding: calc(env(safe-area-inset-top, 0px) + 1rem) 1rem
+    calc(env(safe-area-inset-bottom, 0px) + 2rem);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 1.25rem;
+}
+
+.header .location {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.header .updated {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.hero {
+  text-align: center;
+  padding: 1.5rem 0 1.75rem;
+}
+
+.hero .headline {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  line-height: 1.1;
+}
+
+.hero .subline {
+  margin-top: 0.5rem;
+  color: var(--muted);
+  font-size: 1.05rem;
+}
+
+.hero.stale .headline,
+.hero.heavy-rain .headline {
+  color: var(--danger);
+}
+
+.hero.raining .headline,
+.hero.rain-soon .headline {
+  color: var(--rain);
+}
+
+.banner {
+  margin: 0 0 1rem;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid #7c5c1e;
+  border-radius: 0.6rem;
+  background: #2a2113;
+  color: #f5d78e;
+  font-size: 0.9rem;
+}
+
+.error {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--muted);
+  font-size: 1.1rem;
+}
+
+.horizons {
+  display: flex;
+  gap: 0.35rem;
+  margin-bottom: 0.9rem;
+}
+
+.horizons button {
+  flex: 1;
+  appearance: none;
+  border: 1px solid var(--border);
+  border-radius: 0.6rem;
+  background: var(--panel);
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 0.6rem 0;
+  cursor: pointer;
+}
+
+.horizons button.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: #0e2233;
+}
+
+.summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 0.6rem;
+  background: var(--panel);
+  font-size: 0.95rem;
+}
+
+.summary .status {
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.summary .numbers {
+  color: var(--muted);
+  text-align: right;
+}
+
+.timeline {
+  width: 100%;
+  height: auto;
+  display: block;
+  margin-bottom: 0.9rem;
+}
+
+.timeline .axis-label {
+  fill: var(--muted);
+  font-size: 10px;
+}
+
+.events {
+  margin-bottom: 1rem;
+}
+
+.events h2 {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin: 1rem 0 0.4rem;
+}
+
+.event {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.55rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 0.6rem;
+  background: var(--panel);
+  margin-bottom: 0.4rem;
+}
+
+.event .times {
+  font-weight: 600;
+}
+
+.event .meta {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+details.diagnostics {
+  margin-top: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: 0.6rem;
+  padding: 0.6rem 0.9rem;
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+details.diagnostics summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+details.diagnostics dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.25rem 1rem;
+  margin: 0.6rem 0 0;
+}
+
+details.diagnostics dt {
+  color: var(--muted);
+}
+
+details.diagnostics dd {
+  margin: 0;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}

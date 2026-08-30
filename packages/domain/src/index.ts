@@ -78,3 +78,31 @@ export function classifyIntensity(
   if (precipitationMmPerHour < thresholds.veryHeavyMin) return "heavy";
   return "very-heavy";
 }
+
+// --- Raw source representation (SPEC §14-15) -------------------------------
+// Adapters emit these; pipeline consumes them. Source-specific types never
+// leave the adapter directories.
+
+export const SOURCE_IDS = ["radar-nowcast", "harmonie"] as const;
+export type SourceId = (typeof SOURCE_IDS)[number];
+
+/** SPEC §15 — one normalized point from a raw source (already mm/h). */
+export interface SourceForecastPoint {
+  timestamp: string;
+  precipitationMmPerHour: number;
+}
+
+/** SPEC §15 — provenance of a source forecast. */
+export interface ForecastSourceMetadata {
+  source: SourceId;
+  runGeneratedAt: string;
+  fetchedAt: string;
+  dataset: string;
+  datasetVersion?: string;
+}
+
+/** SPEC §15 — an adapter's normalized output for one source. */
+export interface SourceForecast {
+  source: ForecastSourceMetadata;
+  points: SourceForecastPoint[];
+}

@@ -7,10 +7,10 @@ dist/
 # Test output
 coverage/
 
-# Runtime data storage (SPEC §22: data/ is the runtime lifecycle store —
-# raw/, processed/, snapshots/). Never commit downloaded source files,
-# processed intermediates, or published snapshots.
-data/
+# Runtime data storage (SPEC §22: /data is the runtime lifecycle store —
+# raw/, processed/, snapshots/). Root-anchored: MUST NOT match apps/data/.
+# Never commit downloaded source files, processed intermediates, or snapshots.
+/data/
 
 # Secrets and local environment
 .env
